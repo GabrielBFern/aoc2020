@@ -22,7 +22,7 @@ impl TryFrom<&'static str> for Document {
 
 fn part1(data: &'static str) {
     let count = data
-        .split_terminator("\n\n")
+        .split("\n\n")
         .map(|s| Document::try_from(s).unwrap())
         .filter(validate_fields)
         .count();
@@ -31,7 +31,7 @@ fn part1(data: &'static str) {
 
 fn part2(data: &'static str) {
     let count = data
-        .split_terminator("\n\n")
+        .split("\n\n")
         .map(|s| Document::try_from(s).unwrap())
         .filter(validate_fields)
         .filter(validate)
@@ -45,7 +45,7 @@ fn validate_fields(document: &Document) -> bool {
 }
 
 fn validate(d: &Document) -> bool {
-    d.fields.iter().all(|(&key, value)| match key {
+    d.fields.iter().all(|(&key, &value)| match key {
         "byr" => (1920..=2002).contains(&value.parse().unwrap_or(0)),
         "iyr" => (2010..=2020).contains(&value.parse().unwrap_or(0)),
         "eyr" => (2020..=2030).contains(&value.parse().unwrap_or(0)),
@@ -62,7 +62,7 @@ fn validate(d: &Document) -> bool {
                 && value.len() == 7
                 && value.chars().skip(1).all(|h| h.is_ascii_hexdigit())
         }
-        "ecl" => ["amb", "blu", "brn", "gry", "grn", "hzl", "oth"].contains(value),
+        "ecl" => matches!(value, "amb" | "blu" | "brn" | "gry" | "grn" | "hzl" | "oth"),
         "pid" => value.len() == 9 && value.chars().all(|d| d.is_ascii_digit()),
         "cid" => true,
         _ => panic!("Invalid field"),
@@ -78,4 +78,23 @@ fn main() {
 #[cfg(test)]
 mod test {
     use super::*;
+
+    #[test]
+    fn test_examples() {
+        let document = Document::try_from("pid:087499704").unwrap();
+        assert!(!validate_fields(&document));
+        assert!(validate(&document));
+        let document = Document::try_from(
+            "eyr:1972 cid:100 hcl:#18171d ecl:amb hgt:170 pid:186cm iyr:2018 byr:1926",
+        )
+        .unwrap();
+        assert!(validate_fields(&document));
+        assert!(!validate(&document));
+        let document = Document::try_from(
+            "pid:087499704 hgt:74in ecl:grn iyr:2012 eyr:2030 byr:1980 hcl:#623a2f",
+        )
+        .unwrap();
+        assert!(validate_fields(&document));
+        assert!(validate(&document));
+    }
 }
