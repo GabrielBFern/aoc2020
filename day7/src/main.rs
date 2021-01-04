@@ -55,7 +55,7 @@ fn parse_bag(input: &str) -> Result<Bag, String> {
     }
 }
 
-fn bag_name<'a>(input: &'a str) -> IResult<&'a str, &'a str> {
+fn bag_name(input: &str) -> IResult<&str, &str> {
     terminated(
         recognize(tuple((alpha1, space1, alpha1))),
         alt((tag(" bags"), tag(" bag"))),
